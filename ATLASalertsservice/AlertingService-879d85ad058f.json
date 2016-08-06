@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "first-discovery-129221",
+  "private_key_id": "879d85ad058fdf1179189d622a80f93025221762",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC1bwvM61GB/DDa\nIOSre6IRvLqJccmqzAmdD687h4ii/dJ6TviMApGxAiN5twCvvo63BUHKGeia8DQI\nn+4TjLkU/NqOTgcQGn6uGxhHAOxFWyKeyNnCl1OsiaczZ2Zn/vZpZfT0UM77jD2e\nsnGqo73OMHEL0EiPn7EwcGjuCWbpLd1/yelhp45xPjRpThMBaprjkJ9GiI2wOr50\nOubyiiaBOHhs7kzcBeUnWimfTktfV5DwMMa0/4f+D5ptYzqDS9NNLgFCx4rYEKLq\nP1CG9BcEXf6ta/NzAnyQLukLfOyzARuJ7m6hbVGCVBFgKfqamtXhTLUaxsqY5mSg\na6xiD8aTAgMBAAECggEAYVF0IfGjIbb1OTtljLnfH+Z8pBa91nhlO7LbCnJTjyHY\n0TQky2zhWvHLt5C6tInhITiXpmEpTFpFfs7SM/hKmoBadvRRg4jCpH7yEbvj//u3\nYTZY37Ct+CFJ5x+yZVv0Lmq67oWd0H3T25jZsW7s83k2WeDZ2vgMYfAZyHyQj8fY\npYKXTeGWv2rKNZ1n+potANeaiOReG1ADSp6cF+c67Fbbta2YrBB66vk0MFqNjS1A\nYRwjfK6k4cbcfq+1TMu1uW2vt1CKShnLg1+1Z22sNhhtiK0TzeDtApj02gVokTeB\nwO44J4+D7IBKslL42+78nT60YTVcQeAtlvMVL6L88QKBgQD/6CwE/0mNOhrFpC0l\niX80Os8Q1s4dM6gVmOx+Vr9ZxaAC7w0WfaMWmcTOeLdRkbk5BgGx1yz8obuP/afF\n2a5crd24PiTvtE0igz0zRwbGumhlAtTdFyMldEG9lfl6yJcIFIGyxNJNBkLqEnuQ\nde7xTehRRwG8/8EuLZRO8Ym2mQKBgQC1f/CV8Qf8tR7zDYTcQK5XLTRy6ZYUAHbo\nuBqH0UHxIFeyHT1IJ6hAnz/wYs2NGZrlD4RrkpneRK8c9YJntBKXLIKTp+uhSeiW\nLPkI31bcXlh4MgoRA42F0nuw+6HpFMadRMN7VWMsEmlhBQizfEmpxoqw632WR+RS\nmgQV5hceCwKBgQCy0aao20anI/n/L2jIuRqlAY8dwiwG5cjHRrPC2JUfguP8CNUJ\naUNkEJEggeP/YKegPB1FCwoJgm5RALuSmjin1GqBSxN+WGwp+LD0OuZ2SV2Xb/IU\niA1sJ5+kfb712GMJJ2M16yjU39I0RDQJzw7nmTwER2zkh4aS4RCoVUmYyQKBgQCq\n0AOuOa9Yp2S/PePiHYV2SfbohulVXbKLBmkBlXDH67ZczKPV+myglL9qDrKArq5W\nESqAyvHAe0eKq4vU6WXtnFgveoOJwbMBUsX1Eav/rVL5m65ZoMxaO2Nphwg0AfeC\nHysSMaQp4BII2uH7eWciPtZb9uS0wGgjTQu3SFpNTQKBgQDR9V1mB/XZC8OPtjFP\n4sGB2VHkiI4lYhTIFlzK98IK8zruY0TasMripLgsLaAObfJtyI5A9h+otR907EWH\nDgEoSpmW7AtOsbMnPDh+TZHnzyhFWOCo0GjrtzsRagM4FdG0/9patudDlIffqJck\n84XfwK1dWJ3yiXSs1G38iDPSNw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "jupyter@first-discovery-129221.iam.gserviceaccount.com",
+  "client_id": "104255429209199904564",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/jupyter%40first-discovery-129221.iam.gserviceaccount.com"
+}
