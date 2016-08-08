@@ -42,7 +42,16 @@ class subscribers:
 
     def getSubscribers(self, testname):
         ret=[]
+        testColumns=[6,7,8,10,11]
         for row in self.values:
             if row[0]=='Timestamp' : continue
-            ret.append([row[3],row[1],row[2]]) #name, email, link
+            for col,val in enumerate(row):
+               if col not in testColumns: continue
+               if val is None: continue
+               if len(val)<1: continue
+               tests = val.split(',')
+               for test in tests:
+                   test=test.strip()
+                   if test==testname:
+                       ret.append([row[3],row[1],row[2]]) #name, email, link
         return ret

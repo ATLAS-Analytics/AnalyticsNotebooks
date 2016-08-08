@@ -7,8 +7,7 @@ from oauth2client import client
 from oauth2client import tools
 
 
-class subscribers:
-    values=[]
+class alerts:
     
     def __init__(self):
         SCOPE = ["https://spreadsheets.google.com/feeds"]
@@ -16,18 +15,13 @@ class subscribers:
         credentials = ServiceAccountCredentials.from_json_keyfile_name(SECRETS_FILE, SCOPE)
         http = credentials.authorize(httplib2.Http())
         discoveryUrl = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
-        service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
-
-        spreadsheetId = '19bS4cxqBEwr_cnCEfAkbaLo9nCLjWnTnhQHsZGK9TYU'
-        #rangeName = 'Form Responses'#!A2:E'
-        #result = service.spreadsheets().values().get(spreadsheetId=spreadsheetId, range=rangeName).execute()
-        #self.values = result.get('values', [])
+        self.service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
         return
     
 
-    def addAlert(self, email, body):
-        ret=[]
-        for row in self.values:
-            if row[0]=='Timestamp' : continue
-            ret.append([row[3],row[1],row[2]]) #name, email, link
-        return ret
+    def addAlert(self, test, email, text):
+        spreadsheetId = '19bS4cxqBEwr_cnCEfAkbaLo9nCLjWnTnhQHsZGK9TYU'
+        rangeName = test + '!A1:C1'
+        myBody = {u'range': rangeName, u'values': [[time.strftime("%Y/%m/%d %H:%M:%S"), email, text]], u'majorDimension': u'ROWS'}
+        cells = self.service.spreadsheets().values().append(spreadsheetId=spreadsheetId, range=rangeName,valueInputOption='RAW', insertDataOption='INSERT_ROWS', body=myBody).execute()
+        return 
