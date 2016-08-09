@@ -6,6 +6,9 @@ import oauth2client
 from oauth2client import client
 from oauth2client import tools
 
+from email.mime.text import MIMEText
+from subprocess import Popen, PIPE
+
 
 class alerts:
     
@@ -25,3 +28,15 @@ class alerts:
         myBody = {u'range': rangeName, u'values': [[time.strftime("%Y/%m/%d %H:%M:%S"), email, text]], u'majorDimension': u'ROWS'}
         cells = self.service.spreadsheets().values().append(spreadsheetId=spreadsheetId, range=rangeName,valueInputOption='RAW', insertDataOption='INSERT_ROWS', body=myBody).execute()
         return 
+
+
+    def sendMail(self, test, to, body):
+        msg = MIMEText(body)
+        msg['Subject'] = test
+        msg['From'] = 'AAAS@mwt2.org'
+        msg['To'] = to
+
+        p = Popen(["/usr/sbin/sendmail", "-t", "-oi", "-r AAAS@mwt2.org"], stdin=PIPE)
+        print(msg.as_string())
+        p.communicate(msg.as_string().encode('utf-8'))
+
