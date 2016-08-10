@@ -26,7 +26,7 @@ class subscribers:
     
     def getTests(self):
         ret=[]
-        testColumns=[6,7,8,10,11]
+        testColumns=[4,6,7,8,10,11]
         for row in self.values:
             if row[0]=='Timestamp' : continue
             for col,val in enumerate(row):
@@ -42,7 +42,7 @@ class subscribers:
 
     def getSubscribers(self, testname):
         ret=[]
-        testColumns=[6,7,8,10,11]
+        testColumns=[4,6,7,8,10,11]
         for row in self.values:
             if row[0]=='Timestamp' : continue
             for col,val in enumerate(row):

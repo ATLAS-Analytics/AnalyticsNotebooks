@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd /home/ivukotic/workspace/AnalyticsNotebooks/ATLASalertsservice/
-jupyter nbconvert --execute CheckClusterState.ipynb  
+/home/ivukotic/anaconda3/bin/jupyter nbconvert --execute CheckClusterState.ipynb  
