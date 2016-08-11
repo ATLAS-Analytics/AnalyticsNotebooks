@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8" />
-<title>CheckClusterState</title>
+<title>CheckPerfsonarIndexing</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
@@ -176,8 +176,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Check-Cluster-State">Check Cluster State<a class="anchor-link" href="#Check-Cluster-State">&#182;</a></h1><p>This notebook check the state of ES cluster and sends mails to all the people substribed to that alert.
-It is run once per hour from a cron job.</p>
+<h1 id="Checks-if-Perfsonar-data-is-indexed">Checks if Perfsonar data is indexed<a class="anchor-link" href="#Checks-if-Perfsonar-data-is-indexed">&#182;</a></h1><p>This notebook checks number of indexed documents in all four doc types (latency, packetloss, throughput and traceroute) and alerts if any of them is 0. It sends mails to all the people substribed to that alert. It is run every 30 min from a cron job.</p>
 
 </div>
 </div>
@@ -188,7 +187,9 @@ It is run once per hour from a cron job.</p>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">subscribers</span><span class="o">,</span> <span class="nn">alerts</span>
-<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">elasticsearch</span> <span class="k">import</span> <span class="n">Elasticsearch</span><span class="p">,</span> <span class="n">exceptions</span> <span class="k">as</span> <span class="n">es_exceptions</span>
+<span class="n">es</span> <span class="o">=</span> <span class="n">Elasticsearch</span><span class="p">(</span><span class="n">hosts</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;host&#39;</span><span class="p">:</span><span class="s1">&#39;atlas-kibana.mwt2.org&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">:</span><span class="mi">9200</span><span class="p">}],</span><span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -201,9 +202,13 @@ It is run once per hour from a cron job.</p>
 <div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">r</span><span class="o">=</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;http://cl-analytics.mwt2.org:9200/_cluster/health&#39;</span><span class="p">)</span>
-<span class="n">res</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">ct</span>  <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="s1">&#39;network_weather_2-</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">.</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span>
+<span class="n">currentTime</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()</span><span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="n">startTime</span><span class="o">=</span><span class="n">currentTime</span> <span class="o">-</span> <span class="mi">1800000</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;start time&#39;</span><span class="p">,</span> <span class="n">startTime</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;current time&#39;</span><span class="p">,</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 </pre></div>
 
 </div>
@@ -216,7 +221,9 @@ It is run once per hour from a cron job.</p>
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>{&apos;number_of_in_flight_fetch&apos;: 0, &apos;number_of_pending_tasks&apos;: 0, &apos;status&apos;: &apos;green&apos;, &apos;delayed_unassigned_shards&apos;: 0, &apos;task_max_waiting_in_queue_millis&apos;: 0, &apos;relocating_shards&apos;: 0, &apos;initializing_shards&apos;: 0, &apos;active_primary_shards&apos;: 8455, &apos;active_shards&apos;: 17045, &apos;number_of_data_nodes&apos;: 13, &apos;cluster_name&apos;: &apos;atlas&apos;, &apos;timed_out&apos;: False, &apos;number_of_nodes&apos;: 20, &apos;active_shards_percent_as_number&apos;: 100.0, &apos;unassigned_shards&apos;: 0}
+<pre>network_weather_2-2016.8.11
+start time 1470888921219
+current time 2016-08-10 23:45:21.219655
 </pre>
 </div>
 </div>
@@ -230,60 +237,107 @@ It is run once per hour from a cron job.</p>
 <div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;green&#39;</span><span class="p">:</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">types_query</span><span class="o">=</span><span class="p">{</span>
+   <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+   <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;bool&quot;</span><span class="p">:{</span>
+            <span class="s2">&quot;must&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="c1">#                &quot;term&quot;: {&quot;_type&quot;:&quot;latency&quot;}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;filter&quot;</span><span class="p">:{</span>
+                <span class="s2">&quot;range&quot;</span><span class="p">:{</span><span class="s2">&quot;timestamp&quot;</span><span class="p">:{</span><span class="s2">&quot;gte&quot;</span><span class="p">:</span> <span class="n">startTime</span><span class="p">,</span><span class="s2">&quot;lte&quot;</span><span class="p">:</span> <span class="n">currentTime</span><span class="p">}}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+   <span class="p">},</span>
+    <span class="s2">&quot;aggs&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;docType&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;terms&quot;</span> <span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;field&quot;</span> <span class="p">:</span> <span class="s2">&quot;_type&quot;</span> <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">res</span> <span class="o">=</span> <span class="n">es</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">ind</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">types_query</span><span class="p">,</span> <span class="n">request_timeout</span><span class="o">=</span><span class="mi">120</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>{&apos;hits&apos;: {&apos;hits&apos;: [], &apos;max_score&apos;: 0.0, &apos;total&apos;: 31680}, &apos;timed_out&apos;: False, &apos;took&apos;: 27, &apos;_shards&apos;: {&apos;successful&apos;: 5, &apos;failed&apos;: 0, &apos;total&apos;: 5}, &apos;aggregations&apos;: {&apos;docType&apos;: {&apos;doc_count_error_upper_bound&apos;: 0, &apos;buckets&apos;: [{&apos;key&apos;: &apos;latency&apos;, &apos;doc_count&apos;: 14273}, {&apos;key&apos;: &apos;packet_loss_rate&apos;, &apos;doc_count&apos;: 14155}, {&apos;key&apos;: &apos;traceroute&apos;, &apos;doc_count&apos;: 3073}, {&apos;key&apos;: &apos;throughput&apos;, &apos;doc_count&apos;: 179}], &apos;sum_other_doc_count&apos;: 0}}}
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">r</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;aggregations&#39;</span><span class="p">][</span><span class="s1">&#39;docType&#39;</span><span class="p">][</span><span class="s1">&#39;buckets&#39;</span><span class="p">]</span>
+<span class="n">problematic</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="s1">&#39;doc_count&#39;</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">problematic</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;types with no docs:&#39;</span><span class="p">,</span> <span class="n">problematic</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>{&apos;key&apos;: &apos;latency&apos;, &apos;doc_count&apos;: 14273}
+{&apos;key&apos;: &apos;packet_loss_rate&apos;, &apos;doc_count&apos;: 14155}
+{&apos;key&apos;: &apos;traceroute&apos;, &apos;doc_count&apos;: 3073}
+{&apos;key&apos;: &apos;throughput&apos;, &apos;doc_count&apos;: 179}
+types with no docs: []
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">problematic</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">subscribers</span><span class="o">.</span><span class="n">subscribers</span><span class="p">()</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">alerts</span><span class="o">.</span><span class="n">alerts</span><span class="p">()</span>
 
-<span class="n">A</span> <span class="o">=</span> <span class="n">alerts</span><span class="o">.</span><span class="n">alerts</span><span class="p">()</span>
-
-<span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;red&#39;</span><span class="p">:</span>
-    <span class="n">testName</span> <span class="o">=</span> <span class="s1">&#39;Cluster is in RED&#39;</span>
-    <span class="n">subscribersToRed</span> <span class="o">=</span>  <span class="n">S</span><span class="o">.</span><span class="n">getSubscribers</span><span class="p">(</span><span class="n">testName</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">subscriber</span> <span class="ow">in</span> <span class="n">subscribersToRed</span><span class="p">:</span>
+    <span class="n">testName</span> <span class="o">=</span> <span class="s1">&#39;Perfsonar&#39;</span>
+    <span class="n">subscribersToPerfsonar</span> <span class="o">=</span>  <span class="n">S</span><span class="o">.</span><span class="n">getSubscribers</span><span class="p">(</span><span class="n">testName</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">subscribersToPerfsonar</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">subscriber</span> <span class="ow">in</span> <span class="n">subscribersToPerfsonar</span><span class="p">:</span>
         <span class="n">body</span> <span class="o">=</span> <span class="s1">&#39;Dear &#39;</span> <span class="o">+</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;,</span><span class="se">\n\n</span><span class="s1">&#39;</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">this mail is to let you that the University of Chicago Elasticsearch cluster is in RED.</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">this mail is to let you that there is an issue in indexing Perfsonar data in UC Elasticsearch.</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;This is number of documents indexed in last 30 minutes per document type:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Best regards,</span><span class="se">\n</span><span class="s1">ATLAS AAS&#39;</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> To change your alerts preferences please you the following link:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">subscriber</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">subscriber</span><span class="p">)</span>
         <span class="n">A</span><span class="o">.</span><span class="n">sendMail</span><span class="p">(</span><span class="n">testName</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">body</span><span class="p">)</span>
-        <span class="n">A</span><span class="o">.</span><span class="n">addAlert</span><span class="p">(</span><span class="n">testName</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;simply red.&#39;</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;yellow&#39;</span><span class="p">:</span>
-    <span class="n">testName</span> <span class="o">=</span> <span class="s1">&#39;Cluster is in YELLOW&#39;</span>
-    <span class="n">subscribersToYellow</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">getSubscribers</span><span class="p">(</span><span class="n">testName</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">subscriber</span> <span class="ow">in</span> <span class="n">subscribersToYellow</span><span class="p">:</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="s1">&#39;Dear &#39;</span> <span class="o">+</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;,</span><span class="se">\n\n</span><span class="s1">&#39;</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">this mail is to let you that the University of Chicago Elasticsearch cluster is in YELLOW.&#39;</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;There is &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;unassigned_shards&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; unassigned shards on &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;number_of_nodes&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; nodes.</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Best regards,</span><span class="se">\n</span><span class="s1">ATLAS AAS&#39;</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">body</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1"> To change your alerts preferences please you the following link:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="n">subscriber</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">subscriber</span><span class="p">)</span>
-        <span class="n">A</span><span class="o">.</span><span class="n">sendMail</span><span class="p">(</span><span class="n">testName</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">body</span><span class="p">)</span>
-        <span class="n">A</span><span class="o">.</span><span class="n">addAlert</span><span class="p">(</span><span class="n">testName</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;unassigned_shards&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; unassigned shards on &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;number_of_nodes&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; nodes.&#39;</span> <span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span> 
+        <span class="n">A</span><span class="o">.</span><span class="n">addAlert</span><span class="p">(</span><span class="n">testName</span><span class="p">,</span> <span class="n">subscriber</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
 </pre></div>
 
 </div>
