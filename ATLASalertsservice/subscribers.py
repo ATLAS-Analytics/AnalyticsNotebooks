@@ -30,14 +30,14 @@ class subscribers:
         for row in self.values:
             if row[0]=='Timestamp' : continue
             for col,val in enumerate(row):
-               if col not in testColumns: continue
-               if val is None: continue
-               if len(val)<1: continue
-               tests = val.split(',')
-               for test in tests:
-                   test=test.strip()
-                   if test not in ret:
-                       ret.append(test)
+                if col not in testColumns: continue
+                if val is None: continue
+                if len(val)<1: continue
+                tests = val.split(',')
+                for test in tests:
+                    test=test.strip()
+                    if test not in ret:
+                        ret.append(test)
         return ret
 
     def getSubscribers(self, testname):
@@ -46,12 +46,12 @@ class subscribers:
         for row in self.values:
             if row[0]=='Timestamp' : continue
             for col,val in enumerate(row):
-               if col not in testColumns: continue
-               if val is None: continue
-               if len(val)<1: continue
-               tests = val.split(',')
-               for test in tests:
-                   test=test.strip()
-                   if test==testname:
-                       ret.append([row[3],row[1],row[2]]) #name, email, link
+                if col not in testColumns: continue
+                if val is None: continue
+                if len(val)<1: continue
+                tests = val.split(',')
+                for test in tests:
+                    test=test.strip()
+                    if test==testname:
+                        ret.append([row[3],row[1],row[2]]) #name, email, link
         return ret
