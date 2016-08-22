@@ -11,11 +11,11 @@ where eol_at is not null and a.id=b.rule_id group by b.scope, b.name, b.rse_id) 
 select count(*), sum(mlength), sum(mbytes), atlas_rucio.id2rse(rse_id), scope from (select b.scope, b.name, b.rse_id, nvl(max(length), 0) as mlength, nvl(max(bytes), 0) as mbytes from atlas_rucio.rules a, atlas_rucio.dataset_locks b
 where eol_at<sysdate and a.id=b.rule_id group by b.scope, b.name, b.rse_id) group by rse_id, scope
 
---Query 4
+-- Query 4
 select count(*), sum(mlength), sum(mbytes), scope from (select b.scope, b.name, b.rse_id, nvl(max(length), 0) as mlength, nvl(max(bytes), 0) as mbytes from atlas_rucio.rules a, atlas_rucio.dataset_locks b
 where eol_at<sysdate and a.id=b.rule_id group by b.scope, b.name, b.rse_id) group by scope
 
---Query 5
+-- Query 5
 select count(*), sum(mlength), sum(mbytes), scope, trunc(meol_at, 'MM') from (select b.scope, b.name, b.rse_id, nvl(max(length), 0) as mlength, 
 nvl(max(bytes), 0) as mbytes, max(eol_at) as meol_at
 from atlas_rucio.rules a, atlas_rucio.dataset_locks b
