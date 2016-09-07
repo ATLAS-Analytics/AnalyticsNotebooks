@@ -19,4 +19,9 @@ where eol_at<sysdate and a.id=b.rule_id group by b.scope, b.name, b.rse_id) grou
 select count(*), sum(mlength), sum(mbytes), scope, trunc(meol_at, 'MM') from (select b.scope, b.name, b.rse_id, nvl(max(length), 0) as mlength, 
 nvl(max(bytes), 0) as mbytes, max(eol_at) as meol_at
 from atlas_rucio.rules a, atlas_rucio.dataset_locks b
-where eol_at<sysdate and a.id=b.rule_id and eol_at is not null group by b.scope, b.name, b.rse_id) group by trunc(meol_at, 'MM'), scope
+where eol_at<to_date('2017-01-01', 'YYYY-MM-DD') and a.id=b.rule_id and eol_at is not null group by b.scope, b.name, b.rse_id) group by trunc(meol_at, 'MM'), scope
+
+-- Query 6
+select count(*), sum(mlength), sum(mbytes), scope, trunc(meol_at, 'MM') from (select b.scope, b.name, b.rse_id,  max(nvl(length, 0)) as mlength, max(nvl(bytes, 0)) as mbytes, max(eol_at) as meol_at
+from atlas_rucio.rules a, atlas_rucio.dataset_locks b
+where eol_at is not null and a.id=b.rule_id group by b.scope, b.name, b.rse_id) group by trunc(meol_at, 'MM'), scope
