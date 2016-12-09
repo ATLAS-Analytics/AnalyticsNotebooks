@@ -40,6 +40,15 @@ class subscribers:
                         ret.append(test)
         return ret
 
+    def getAllUserBasicInfo(self):
+        ret={}
+        for row in self.values:
+            if row[0]=='Timestamp' : continue
+            email=row[1]
+            user={'email':email, 'name':row[3], 'link':row[2], 'alerts':[]}
+            ret[email]=user 
+        return ret
+
     def getSubscribers(self, testname):
         ret=[]
         testColumns=[4,6,7,8,10,11]
@@ -54,4 +63,21 @@ class subscribers:
                     test=test.strip()
                     if test==testname:
                         ret.append([row[3],row[1],row[2]]) #name, email, link
+        return ret
+
+    def getSubscribers_withSiteName(self,testname):
+        ret=[]
+        testColumns=[6,7,8,10]
+        siteForTest={6:5,7:5,8:5,10:9}
+        for row in self.values:
+            if row[0]=='Timestamp' : continue
+            for col,val in enumerate(row):
+                if col not in testColumns: continue
+                if val is None: continue
+                if len(val)<1: continue
+                tests = val.split(',')
+                for test in tests:
+                    test=test.strip()
+                    if test==testname:
+                        ret.append([row[3],row[1],row[2],row[siteForTest[col]]]) #name, email, link, site name
         return ret
