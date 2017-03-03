@@ -1,0 +1,5 @@
+try an LSTM - use it as a predictor and a large deviation from prediction is an anomaly.
+use PL, OWD features (not throughput)
+use only 10 shortest (in OWD) links
+train for each site different one
+
