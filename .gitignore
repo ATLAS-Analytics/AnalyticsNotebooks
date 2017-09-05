@@ -67,6 +67,12 @@ target/
 *.avro
 *.h5
 *.txt
+*.pkl
+*.pickle
+*.zip
+
+# plots
+*.png
 
 #html
 *.html
