@@ -70,9 +70,11 @@ target/
 *.pkl
 *.pickle
 *.zip
+*.sav
 
 # plots
 *.png
+*.dot
 
 #html
 *.html
