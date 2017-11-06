@@ -71,6 +71,7 @@ target/
 *.pickle
 *.zip
 *.sav
+*.gz
 
 # plots
 *.png
