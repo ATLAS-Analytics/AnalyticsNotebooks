@@ -72,10 +72,13 @@ target/
 *.zip
 *.sav
 *.gz
+*.tgz
 
 # plots
 *.png
 *.dot
+*.bmp
+*.jpg
 
 #html
 *.html

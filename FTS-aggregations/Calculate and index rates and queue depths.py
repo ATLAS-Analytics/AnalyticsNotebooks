@@ -36,39 +36,6 @@ def store(docs_to_store):
        print('Something seriously wrong happened.',e)
 
 
-# #### Get AGIS endpoints (RSEs) and site names
-
-
-r = requests.get('http://atlas-agis-api.cern.ch/request/site/query/list/ddmendpoints?json')
-j = r.json()
-rse2site = {}
-for i in j:
-    for ep in i['ddmendpoints']:
-        rse2site[ep]=i['name']
-print("total RSEs:", len(rse2site), "on",len(set(rse2site.values())),"sites.")
-
-
-# #### Find indices to scan. We should scan at least 10 days before and 10 days after the day we are recalculating, so we cover all the very slow transfers.
-
-
-indices = es.cat.indices(index="fts_*", h="index", request_timeout=600).split('\n')
-indices = [x for x in indices if x != '']
-indices = [x.strip() for x in indices]
-#print(indices)
-
-indices_to_scan=['fts_' + str(cdt.year) + '-' + str(cdt.month).zfill(2) + '-' + str(cdt.day).zfill(2)]
-
-for d in range(1,days_around):
-    bef = cdt - dt.timedelta(days=d)
-    aft = cdt + dt.timedelta(days=d)
-    ind_bef = 'fts_' + str(bef.year) + '-' + str(bef.month).zfill(2) + '-' + str(bef.day).zfill(2)
-    ind_aft = 'fts_' + str(aft.year) + '-' + str(aft.month).zfill(2) + '-' + str(aft.day).zfill(2)
-    if ind_bef in indices: indices_to_scan.append(ind_bef)
-    if ind_aft in indices: indices_to_scan.append(ind_aft)
-        
-print(indices_to_scan)
-
-
 # #### Create structures to hold the data. Time bins are 1 minute.
 
 
@@ -76,7 +43,8 @@ period_start = cdt.replace(hour=0).replace(minute=0).replace(second=0)
 period_end   = cdt.replace(hour=23).replace(minute=59).replace(second=59)
 
 bot = dt.datetime(1970,1,1)
-index_name='fts-aggregates_' + str(period_start.year) + '-' + str(period_start.month)# + '-' + str(period_start.day)
+l_index_name='links_traffic_' + str(period_start.year) + '-' + str(period_start.month)# + '-' + str(period_start.day)
+s_index_name='sites_traffic_' + str(period_start.year) + '-' + str(period_start.month)# + '-' + str(period_start.day)
 
 ps = int((period_start - bot).total_seconds())
 pe = int((period_end - bot).total_seconds())
@@ -128,8 +96,8 @@ class link:
         docs=[]
         for index, row in self.df.iterrows():
             doc = {
-                '_index':index_name,
-                '_type' : 'link',
+                '_index': l_index_name,
+                '_type' : 'docs',
                 'timestamp' : int(index*1000),
                 'src' : self.src,
                 'dest' : self.dest,
@@ -171,8 +139,8 @@ class endpoint:
         docs=[]
         for index, row in self.df.iterrows():
             docs.append({ 
-                '_index':index_name,
-                '_type' : 'endpoint',
+                '_index': s_index_name,
+                '_type' : 'docs',
                 'timestamp' : int(index*1000),
                 'name' : self.name,
                 'ingress' : float(row['EndpointIgress']),
@@ -188,20 +156,23 @@ class endpoint:
 
 query = {
     "size": 0,
-    "_source": ["src_rse", "dst_rse", "activity","bytes","submitted_at","started_at","transferred_at"],
+    "_source": ["metadata.src_site", "metadata.dst_site", "metadata.activity","f_size",
+                "processing_start","transfer_start","transfer_stop","processing_stop"],
     "query":{ 
         "bool" : {
             "must" : [
                # {"term" : { "src_rse" : "BNL-OSG2_DATADISK" }},
                # {"term" : { "dst_rse" : "CERN-PROD_DATADISK" }},
-                {"range" : {"transferred_at" : {  "gte": period_start } }},
-                {"range" : {"submitted_at" :   {  "lt" : period_end } }}
+                {"term" : { "vo" : "atlas" }},
+                {"term" : { "final_transfer_state" : "Ok"}},
+                {"range" : {"processing_start" : {  "gte": period_start } }},
+                {"range" : {"processing_stop" :   {  "lt" : period_end } }}
                 ]
         }
     }        
 }
 
-scroll = scan(client=es, index=indices_to_scan, query=query, scroll='5m', timeout="5m", size=10000)
+scroll = scan(client=es, index="fts", query=query, scroll='5m', timeout="5m", size=10000)
 
 endpoints={}
 links={}
@@ -209,17 +180,20 @@ links={}
 count = 0
 for res in scroll:
     count += 1
-    #if count>10: break
-    if not count%100000 : print (count)
-    r = res['_source']
-    src = rse2site[r['src_rse']]
-    dest = rse2site[r['dst_rse']]
-    subm = (dt.datetime.strptime(r['submitted_at'].strip('Z'), '%Y-%m-%dT%H:%M:%S') - bot).total_seconds()
-    star = (dt.datetime.strptime(r['started_at'].strip('Z'), '%Y-%m-%dT%H:%M:%S') - bot).total_seconds()
-    tran = (dt.datetime.strptime(r['transferred_at'].strip('Z'), '%Y-%m-%dT%H:%M:%S') - bot).total_seconds()
+#    print(res)
+#    if count>10: break
+    if not count%100000 : 
+        print (count)
+    r    = res['_source']
+    if not ('src_site' in r['metadata'] and 'dst_site' in r['metadata']): continue
+    src  = r['metadata']['src_site']
+    dest = r['metadata']['dst_site']
+    subm = r['processing_start']/1000
+    star = r['transfer_start']/1000
+    tran = r['transfer_stop']/1000
     transfer_duration = tran - star
     if transfer_duration > 0:
-        rate = float(r['bytes']) / transfer_duration * 0.000000953674316
+        rate = float(r['f_size']) / transfer_duration * 0.000000953674316
     
     if src not in endpoints: endpoints[src]=endpoint(src)
     if dest not in endpoints: endpoints[dest]=endpoint(dest)
@@ -228,28 +202,23 @@ for res in scroll:
     if link_name not in links: links[link_name]=link(src,dest)
     
     links[link_name].add_transfer( star, tran, rate) 
-    links[link_name].add_queue( subm, star, r['activity'].replace(' ','_'))
+    links[link_name].add_queue( subm, star, r['metadata']['activity'].replace(' ','_'))
     
     endpoints[src].add_transfer( star, tran, rate, 0)  
     endpoints[dest].add_transfer( star, tran, rate, 1)  
       
-print(count)        
+print("docs read:", count)        
     #print(r['submitted_at'],r['started_at'],r['transferred_at'])
 
 
 print('links:',len(links), '\tendpoints:',len(endpoints))
 
-
-
 #print(links.keys())
 #print(endpoints.keys())
 
-links['BNL-ATLAS->CERN-PROD'].df['rate']
-
-links['BNL-ATLAS->CERN-PROD'].stats()
-
-endpoints['CERN-PROD'].stats()
-
+#links['BNL-ATLAS->CERN-PROD'].df['rate']
+#links['BNL-ATLAS->CERN-PROD'].stats()
+#endpoints['CERN-PROD'].stats()
 
 tp=int(len(links)/20)
 for nl,link in enumerate(links.values()):
@@ -265,14 +234,4 @@ for endpoint in endpoints.values():
 
 
 print('done')
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
 
