@@ -52,7 +52,7 @@ class subscribers:
         for nr, row in enumerate(self.datarows):
             u = user(self.get_cell_value(nr,'Email address'), self.get_cell_value(nr,'Your name'))
             u.set_response_edit_link(self.get_cell_value(nr,'ResponseEditLink'))
-            u.set_rucio_name(self.get_cell_value(nr,'Your RUCIO username'))
+            u.set_rucio_name(self.get_cell_value(nr,'Your RUCIO name'))
             u.set_jobs(self.get_cell_value(nr,'Section'))
             u.set_interval(self.get_cell_value(nr,'Report frequency'))
             if self.get_cell_value(nr,'Report frequency')=='Yes':
