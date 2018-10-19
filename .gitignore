@@ -73,6 +73,7 @@ target/
 *.sav
 *.gz
 *.tgz
+*.p
 
 # plots
 *.png
